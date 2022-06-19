@@ -73,3 +73,8 @@ type Vec2 {
     }
 }
 def inc (Vec2 -> Vec2) = dup .x 1 + :x
+
+
+
+// saturation
+v !{ 2 :x 3 :y }

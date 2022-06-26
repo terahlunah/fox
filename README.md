@@ -1,4 +1,6 @@
-# Fox 🦊
+# Fox 🦊 
+
+_Warning: this is a WIP language_
 
 Fox is a statically typed, stack-based, concatenative programming language.  
 It is designed to balance minimalism and ergonomics.

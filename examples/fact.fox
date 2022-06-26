@@ -1,0 +1,10 @@
+def fact =
+    match {
+        | 0: 1
+        | n:
+            n dup
+            1 - fact
+            *
+    }
+
+4 fact 24 = assert

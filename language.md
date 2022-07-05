@@ -297,12 +297,12 @@ TODO
 Multiple constructors with no fields
 ```
 # Single line syntax
-type Bool = false | true
+type Bool = False | True
 
 # Multi line syntax
 type Bool {
-    | false
-    | true
+    | True
+    | False
 }
 ```
 
@@ -349,3 +349,7 @@ TODO
 ## Traits
 
 TODO
+
+---
+
+## Seq (Iterable)

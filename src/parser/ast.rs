@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct Ast {
-    defs: Vec<Definition>,
+    pub defs: Vec<Definition>,
 }
 
 #[derive(Debug)]
@@ -11,20 +11,20 @@ pub enum Definition {
 
 #[derive(Debug)]
 pub struct FunctionDefinition {
-    name: String,
-    body: TermList,
+    pub name: String,
+    pub body: Block,
 }
 
-pub type TermList = Vec<Term>;
+pub type Block = Vec<Expr>;
 
 #[derive(Debug, PartialEq)]
-pub enum Term {
+pub enum Expr {
     Literal(Literal),
     Term(String),
-    List(Vec<TermList>),
+    List(Vec<Block>),
     Dict,
     Tuple,
-    Block,
+    Quote(Block),
 }
 
 #[derive(Debug, PartialEq)]

@@ -1,4 +1,8 @@
-1 2
-3
-"test"
-'c'
+def fact2 {
+    countTo
+    \* reduce
+}
+
+def fact3 {
+
+}

@@ -1,21 +1,82 @@
 pub mod ast;
 
-use crate::parser::ast::{Ast, Literal, Term, TermList};
+use crate::parser::ast::{Ast, Block, Definition, Expr, FunctionDefinition, Literal};
 use chumsky::{
     prelude::*,
     text::{digits, whitespace},
 };
 
-pub fn root() -> impl Parser<char, TermList, Error = Simple<char>> {
-    term_list()
+pub fn root() -> impl Parser<char, Ast, Error = Simple<char>> {
+    definition()
+        .repeated()
+        .then_ignore(end())
+        .map(|defs| Ast { defs })
 }
 
-pub fn term_list() -> impl Parser<char, TermList, Error = Simple<char>> {
-    term().separated_by(whitespace())
+pub fn definition() -> impl Parser<char, Definition, Error = Simple<char>> {
+    choice((function().map(Definition::FunctionDef),))
 }
 
-pub fn term() -> impl Parser<char, Term, Error = Simple<char>> {
-    choice((literal().map(Term::Literal),))
+pub fn function() -> impl Parser<char, FunctionDefinition, Error = Simple<char>> {
+    just("def")
+        .ignore_then(function_name())
+        .then(block())
+        .map(|(name, body)| FunctionDefinition { name, body })
+}
+
+pub fn function_name() -> impl Parser<char, String, Error = Simple<char>> {
+    filter(|c| match c {
+        'a'..='z' => true,
+        c if "><_=-+?!*/%|~".contains(*c) => true,
+        _ => false,
+    })
+    .then(
+        filter(|c| match c {
+            'a'..='z' => true,
+            'A'..='Z' => true,
+            '0'..='9' => true,
+            c if "><_=-+?!*/%|~".contains(*c) => true,
+            _ => false,
+        })
+        .repeated(),
+    )
+    .padded()
+    .map(|(head, tail)| [vec![head], tail].concat())
+    .collect()
+}
+
+pub fn block() -> impl Parser<char, Block, Error = Simple<char>> {
+    recursive(|block| {
+        expr(block)
+            .separated_by(whitespace())
+            .padded()
+            .delimited_by(just('{'), just('}'))
+            .padded()
+    })
+}
+
+pub fn expr(
+    block: impl Parser<char, Block, Error = Simple<char>>,
+) -> impl Parser<char, Expr, Error = Simple<char>> {
+    choice((
+        literal().map(Expr::Literal),
+        term().map(Expr::Term),
+        lambda(),
+        block.map(Expr::Quote),
+    ))
+}
+
+pub fn term() -> impl Parser<char, String, Error = Simple<char>> {
+    function_name()
+}
+
+pub fn lambda() -> impl Parser<char, Expr, Error = Simple<char>> {
+    just('\\')
+        .ignore_then(choice((
+            literal().map(Expr::Literal),
+            term().map(Expr::Term),
+        )))
+        .map(|l| Expr::Quote(vec![l]))
 }
 
 pub fn literal() -> impl Parser<char, Literal, Error = Simple<char>> {

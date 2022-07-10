@@ -1,17 +1,26 @@
-use crate::{parser, parser::ast::Literal};
+use crate::{
+    parsing,
+    parsing::lexer::{Literal, Token},
+};
 use ariadne::{sources, Color, Fmt, FnCache, Label, Report, ReportKind, Source, Span};
 use chumsky::{
     error::{Simple, SimpleReason},
     Parser,
 };
 use std::fs;
+use tap::Tap;
 
 pub fn execute_script(path: String) {
     let source = fs::read_to_string(path.clone()).expect("Something went wrong reading the file");
 
-    match parser::root().parse(source.as_str()) {
+    let res = parsing::lexer::root()
+        .parse(source.as_str())
+        .tap(|tokens| println!("Tokens: {:?}\n", tokens))
+        .map(|tokens| parsing::parser::root().parse(tokens));
+
+    match res {
         Ok(ast) => {
-            println!("{:?}", ast);
+            println!("Ast: {:?}", ast);
         }
         Err(errs) => {
             for err in errs {

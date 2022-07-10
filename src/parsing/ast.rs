@@ -1,3 +1,5 @@
+use crate::parsing::lexer::Literal;
+
 #[derive(Debug)]
 pub struct Ast {
     pub defs: Vec<Definition>,
@@ -9,7 +11,7 @@ pub enum Definition {
     //TypeDef,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FunctionDefinition {
     pub name: String,
     pub body: Block,
@@ -25,12 +27,4 @@ pub enum Expr {
     Dict,
     Tuple,
     Quote(Block),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Literal {
-    Int(i64),
-    Float(f64),
-    Char(char),
-    String(Vec<char>),
 }

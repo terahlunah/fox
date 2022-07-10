@@ -1,8 +1,3 @@
-def fact2 {
-    countTo
-    \* reduce
-}
-
-def fact3 {
-
-}
+def add3 =
+    -> a,b,c
+    a b c +

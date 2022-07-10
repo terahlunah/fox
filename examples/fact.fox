@@ -1,4 +1,4 @@
-def fact1 {
+def fact1 =
     match {
         | 0: 1
         | n:
@@ -6,12 +6,12 @@ def fact1 {
             1 - fact
             *
     }
-}
 
-def fact2 {
+
+def fact2 =
     countTo       # produce a range from 0 to n (not included)
     \* reduce   # consume an seq and calculate the product of its elements
-}
+
 
 4 fact1 24 assertEq
 4 fact2 24 assertEq

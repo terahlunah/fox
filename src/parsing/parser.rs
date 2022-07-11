@@ -13,8 +13,19 @@ pub struct Ast {
 
 #[derive(Debug, Clone)]
 pub enum Definition {
-    FunctionDef(FunctionDefinition),
-    //TypeDef,
+    Function(FunctionDefinition),
+    Type(TypeDefinition),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct TypeDefinition {
+    pub name: String,
+    pub variants: Vec<VariantDefinition>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct VariantDefinition {
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -77,10 +88,26 @@ pub fn root() -> impl Parser<Token, Ast, Error = Simple<Token>> {
 }
 
 pub fn definition() -> impl Parser<Token, Definition, Error = Simple<Token>> {
-    choice((function().map(Definition::FunctionDef),))
+    choice((
+        function_def().map(Definition::Function),
+        type_def().map(Definition::Type),
+    ))
 }
 
-pub fn function() -> impl Parser<Token, FunctionDefinition, Error = Simple<Token>> {
+pub fn type_def() -> impl Parser<Token, TypeDefinition, Error = Simple<Token>> {
+    keyword(Token::Type)
+        .ignore_then(module_name())
+        .then_ignore(keyword(Token::Eq))
+        .then(
+            module_name()
+                .map(|v| VariantDefinition { name: v })
+                .separated_by(just(Token::Pipe))
+                .allow_leading(),
+        )
+        .map(|(name, variants)| TypeDefinition { name, variants })
+}
+
+pub fn function_def() -> impl Parser<Token, FunctionDefinition, Error = Simple<Token>> {
     keyword(Token::Def)
         .ignore_then(term_name())
         .then(function_type().or_not())

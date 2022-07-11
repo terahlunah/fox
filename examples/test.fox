@@ -1,2 +1,7 @@
-def square (Float -> Float) =
-    dup *
+# Single line syntax
+type Bool = False | True
+
+# Multi line syntax
+type Bool =
+    | True
+    | False

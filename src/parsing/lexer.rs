@@ -12,11 +12,13 @@ use std::{
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub enum Token {
     Def,
+    Type,
     Eq,
     Lambda,
     Dot,
     Comma,
     Colon,
+    Pipe,
     Term(String),
     Module(String),
     Literal(Literal),
@@ -85,11 +87,13 @@ pub fn root() -> impl Parser<char, Vec<Token>, Error = Simple<char>> {
 pub fn keyword() -> impl Parser<char, Token, Error = Simple<char>> {
     choice((
         just("def").map(|_| Token::Def),
+        just("type").map(|_| Token::Type),
         just("=").map(|_| Token::Eq),
         just("\\").map(|_| Token::Lambda),
         just(".").map(|_| Token::Dot),
         just(",").map(|_| Token::Comma),
         just(":").map(|_| Token::Colon),
+        just("|").map(|_| Token::Pipe),
         just("(").map(|_| Token::LParen),
         just(")").map(|_| Token::RParen),
         just("{").map(|_| Token::LBrace),

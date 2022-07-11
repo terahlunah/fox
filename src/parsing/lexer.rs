@@ -18,6 +18,7 @@ pub enum Token {
     Comma,
     Colon,
     Term(String),
+    Module(String),
     Literal(Literal),
     LParen,
     RParen,
@@ -25,7 +26,9 @@ pub enum Token {
     RBrace,
     LBracket,
     RBracket,
-    Local,
+    Arrow,
+    Then,
+    Else,
 }
 
 impl Display for Token {
@@ -41,7 +44,7 @@ pub enum Literal {
     Int(i64),
     Float(f64),
     Char(char),
-    String(Vec<char>),
+    String(String),
 }
 
 impl Hash for Literal {
@@ -69,7 +72,7 @@ impl PartialEq for Literal {
 impl Eq for Literal {}
 
 pub fn root() -> impl Parser<char, Vec<Token>, Error = Simple<char>> {
-    let token = choice((keyword(), literal(), term())).padded();
+    let token = choice((keyword(), literal(), term(), module())).padded();
 
     let with_comments = comment()
         .repeated()
@@ -93,7 +96,9 @@ pub fn keyword() -> impl Parser<char, Token, Error = Simple<char>> {
         just("}").map(|_| Token::RBrace),
         just("[").map(|_| Token::LBracket),
         just("]").map(|_| Token::RBracket),
-        just("->").map(|_| Token::Local),
+        just("->").map(|_| Token::Arrow),
+        just("then").map(|_| Token::Then),
+        just("else").map(|_| Token::Else),
     ))
 }
 
@@ -117,6 +122,26 @@ pub fn term() -> impl Parser<char, Token, Error = Simple<char>> {
     .map(|(head, tail)| [vec![head], tail].concat())
     .collect()
     .map(Token::Term)
+}
+
+pub fn module() -> impl Parser<char, Token, Error = Simple<char>> {
+    filter(|c| match c {
+        'A'..='Z' => true,
+        _ => false,
+    })
+    .then(
+        filter(|c| match c {
+            'a'..='z' => true,
+            'A'..='Z' => true,
+            '0'..='9' => true,
+            _ => false,
+        })
+        .repeated(),
+    )
+    .padded()
+    .map(|(head, tail)| [vec![head], tail].concat())
+    .collect()
+    .map(Token::Module)
 }
 
 pub fn comment() -> impl Parser<char, (), Error = Simple<char>> {
@@ -159,11 +184,11 @@ pub fn float() -> impl Parser<char, f64, Error = Simple<char>> {
         .map(|(neg, f)| if neg { -f } else { f })
 }
 
-pub fn string() -> impl Parser<char, Vec<char>, Error = Simple<char>> {
+pub fn string() -> impl Parser<char, String, Error = Simple<char>> {
     just('"')
         .ignore_then(filter(|c| *c != '"').repeated())
         .then_ignore(just('"'))
-        .collect::<Vec<char>>()
+        .collect()
 }
 
 pub fn character() -> impl Parser<char, char, Error = Simple<char>> {

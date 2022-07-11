@@ -1,3 +1,2 @@
-def add3 =
-    -> a,b,c
-    a b c +
+def square (Float -> Float) =
+    dup *

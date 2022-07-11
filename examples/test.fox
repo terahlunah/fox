@@ -1,7 +1,1 @@
-# Single line syntax
-type Bool = False | True
-
-# Multi line syntax
-type Bool =
-    | True
-    | False
+type Pair a b = Pair a b

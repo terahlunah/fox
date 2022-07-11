@@ -20,12 +20,14 @@ pub enum Definition {
 #[derive(Debug, PartialEq, Clone)]
 pub struct TypeDefinition {
     pub name: String,
+    pub vars: Vec<String>,
     pub variants: Vec<VariantDefinition>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariantDefinition {
     pub name: String,
+    pub items: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -95,16 +97,26 @@ pub fn definition() -> impl Parser<Token, Definition, Error = Simple<Token>> {
 }
 
 pub fn type_def() -> impl Parser<Token, TypeDefinition, Error = Simple<Token>> {
+    let type_name = type_name().then(type_var().repeated());
+
     keyword(Token::Type)
-        .ignore_then(module_name())
+        .ignore_then(type_name.clone())
         .then_ignore(keyword(Token::Eq))
         .then(
             module_name()
-                .map(|v| VariantDefinition { name: v })
+                .then(type_var().or(self::type_name()).repeated())
+                .map(|(v, vars)| VariantDefinition {
+                    name: v,
+                    items: vars,
+                })
                 .separated_by(just(Token::Pipe))
                 .allow_leading(),
         )
-        .map(|(name, variants)| TypeDefinition { name, variants })
+        .map(|((name, vars), variants)| TypeDefinition {
+            name,
+            vars,
+            variants,
+        })
 }
 
 pub fn function_def() -> impl Parser<Token, FunctionDefinition, Error = Simple<Token>> {
@@ -204,12 +216,20 @@ pub fn expr() -> impl Parser<Token, ExprList, Error = Simple<Token>> {
     })
 }
 
-pub fn term_name() -> impl Parser<Token, String, Error = Simple<Token>> {
+pub fn term_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
     select! { Token::Term(t) => t.clone() }.labelled("term")
 }
 
 pub fn module_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
     select! { Token::Module(t) => t.clone() }.labelled("module")
+}
+
+pub fn type_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
+    select! { Token::Module(t) => t.clone() }.labelled("type")
+}
+
+pub fn type_var() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
+    term_name().labelled("var")
 }
 
 pub fn term() -> impl Parser<Token, Expr, Error = Simple<Token>> {

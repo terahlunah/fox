@@ -1,1 +1,1 @@
-type Pair a b = Pair a b
+type Vec2 t = Vec2 {x: t, y: t}

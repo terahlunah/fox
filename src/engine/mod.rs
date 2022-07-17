@@ -25,7 +25,7 @@ pub fn execute_script(path: String) {
                 }
                 Err(err) => {
                     for e in err {
-                        println!("{}", e);
+                        println!("{:?}\n", e);
                     }
                 }
             };

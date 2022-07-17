@@ -19,8 +19,8 @@ pub enum Token {
     Comma,
     Colon,
     Pipe,
-    Term(String),
-    Module(String),
+    LowerName(String),
+    UpperName(String),
     Literal(Literal),
     LParen,
     RParen,
@@ -33,13 +33,13 @@ pub enum Token {
     Else,
 }
 
-impl Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            _ => write!(f, "TODO"),
-        }
-    }
-}
+// impl Display for Token {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         match self {
+//             _ => write!(f, "TODO"),
+//         }
+//     }
+// }
 
 #[derive(Debug, Clone)]
 pub enum Literal {
@@ -74,7 +74,7 @@ impl PartialEq for Literal {
 impl Eq for Literal {}
 
 pub fn root() -> impl Parser<char, Vec<Token>, Error = Simple<char>> {
-    let token = choice((keyword(), literal(), term(), module())).padded();
+    let token = choice((keyword(), literal(), lower_name(), upper_name())).padded();
 
     let with_comments = comment()
         .repeated()
@@ -106,7 +106,7 @@ pub fn keyword() -> impl Parser<char, Token, Error = Simple<char>> {
     ))
 }
 
-pub fn term() -> impl Parser<char, Token, Error = Simple<char>> {
+pub fn lower_name() -> impl Parser<char, Token, Error = Simple<char>> {
     filter(|c| match c {
         'a'..='z' => true,
         c if "><_=-+?!*/%|~".contains(*c) => true,
@@ -125,10 +125,10 @@ pub fn term() -> impl Parser<char, Token, Error = Simple<char>> {
     .padded()
     .map(|(head, tail)| [vec![head], tail].concat())
     .collect()
-    .map(Token::Term)
+    .map(Token::LowerName)
 }
 
-pub fn module() -> impl Parser<char, Token, Error = Simple<char>> {
+pub fn upper_name() -> impl Parser<char, Token, Error = Simple<char>> {
     filter(|c| match c {
         'A'..='Z' => true,
         _ => false,
@@ -145,7 +145,7 @@ pub fn module() -> impl Parser<char, Token, Error = Simple<char>> {
     .padded()
     .map(|(head, tail)| [vec![head], tail].concat())
     .collect()
-    .map(Token::Module)
+    .map(Token::UpperName)
 }
 
 pub fn comment() -> impl Parser<char, (), Error = Simple<char>> {

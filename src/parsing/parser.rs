@@ -4,7 +4,7 @@ use chumsky::{
     prelude::*,
     text::{digits, whitespace},
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, env::var};
 
 #[derive(Debug, Clone)]
 pub struct Ast {
@@ -27,7 +27,7 @@ pub struct TypeDefinition {
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariantDefinition {
     pub name: String,
-    pub items: Vec<String>,
+    pub items: HashMap<String, String>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -103,12 +103,7 @@ pub fn type_def() -> impl Parser<Token, TypeDefinition, Error = Simple<Token>> {
         .ignore_then(type_name.clone())
         .then_ignore(keyword(Token::Eq))
         .then(
-            module_name()
-                .then(type_var().or(self::type_name()).repeated())
-                .map(|(v, vars)| VariantDefinition {
-                    name: v,
-                    items: vars,
-                })
+            type_variant()
                 .separated_by(just(Token::Pipe))
                 .allow_leading(),
         )
@@ -117,6 +112,36 @@ pub fn type_def() -> impl Parser<Token, TypeDefinition, Error = Simple<Token>> {
             vars,
             variants,
         })
+}
+
+pub fn type_variant() -> impl Parser<Token, VariantDefinition, Error = Simple<Token>> {
+    let tuple_var = upper_name()
+        .then(lower_or_upper_name().repeated())
+        .map(|(name, variants)| {
+            let mut items = HashMap::new();
+            let mut n = 0;
+            for v in variants {
+                let key = format!("_{n}");
+                items.insert(key, v);
+                n += 1;
+            }
+            VariantDefinition { name, items }
+        });
+
+    let record_var = upper_name()
+        .then(
+            lower_name()
+                .then_ignore(just(Token::Colon))
+                .then(lower_or_upper_name())
+                .separated_by(just(Token::Comma))
+                .delimited_by(just(Token::LBrace), just(Token::RBrace)),
+        )
+        .map(|(name, variants)| {
+            let items = variants.into_iter().collect();
+            VariantDefinition { name, items }
+        });
+
+    choice((record_var, tuple_var))
 }
 
 pub fn function_def() -> impl Parser<Token, FunctionDefinition, Error = Simple<Token>> {
@@ -216,20 +241,32 @@ pub fn expr() -> impl Parser<Token, ExprList, Error = Simple<Token>> {
     })
 }
 
+pub fn lower_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
+    select! { Token::LowerName(t) => t.clone() }
+}
+
+pub fn upper_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
+    select! { Token::UpperName(t) => t.clone() }
+}
+
+pub fn lower_or_upper_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
+    choice((upper_name(), lower_name()))
+}
+
 pub fn term_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
-    select! { Token::Term(t) => t.clone() }.labelled("term")
+    lower_name().labelled("term name")
 }
 
 pub fn module_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
-    select! { Token::Module(t) => t.clone() }.labelled("module")
+    upper_name().labelled("module name")
 }
 
 pub fn type_name() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
-    select! { Token::Module(t) => t.clone() }.labelled("type")
+    upper_name().labelled("type name")
 }
 
 pub fn type_var() -> impl Parser<Token, String, Error = Simple<Token>> + Clone {
-    term_name().labelled("var")
+    term_name().labelled("var name")
 }
 
 pub fn term() -> impl Parser<Token, Expr, Error = Simple<Token>> {

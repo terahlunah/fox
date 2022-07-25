@@ -47,8 +47,7 @@ The comma after the last element is optional.
 (1, 2)
 ```
 Tuples have the type `(a, b, ...)` where `a`, `b` are generic types.  
-The type `(a, b)` is an alias for the internal type `Tuple2 a b`, same for `(a, b, c)` and `Tuple3`, etc.
-Tuples can have up to 9 elements.
+The type `(a, b)` is an alias for the internal type `a b Tuple2`, same for `(a, b, .., n)` and `a b .. n TupleN`, etc.
 
 For example:
 - `(1, 3.14)` has type `(Int, Float)`
@@ -76,7 +75,7 @@ List.empty
 3 List.push
 ```
 
-Lists have the type `[a]` (an alias for the internal type `List a`) where `a` is a generic type.
+Lists have the type `[a]` (an alias for the internal type `a List`) where `a` is a generic type.
 
 
 ---
@@ -102,7 +101,7 @@ Table.empty
 "b" 2 Table.set
 ```
 
-Tables have the type `[a:b]` (an alias for the internal type `Table a b`) where `a` and `b` are a generic type.
+Tables have the type `[a:b]` (an alias for the internal type `a b Table`) where `a` and `b` are a generic type.
 
 
 
@@ -123,7 +122,7 @@ def square = dup *
 Since manipulating the stack is central in Fox, it comes with a few builtin functions for stack manipulation.
 Here are some the most common ones:
 
-- `dup` duplicate the value at the top of the stack  
+- `dup (t -> t t)` duplicate the value at the top of the stack  
   ```
   1
   # stack: [1]
@@ -131,7 +130,7 @@ Here are some the most common ones:
   # stack: [1 1]
   ```
 
-- `drop` remove the value at the top of the stack
+- `drop (t)` remove the value at the top of the stack
   ```
   1 2
   # stack: [1 2]
@@ -139,7 +138,7 @@ Here are some the most common ones:
   # stack: [1]
   ```
 
-- `swap` swap the 2 values at the top of the stack
+- `swap (a b -> b a)` swap the 2 values at the top of the stack
   ```
   1 2
   # stack: [1 2]
@@ -294,46 +293,51 @@ TODO
 
 ## Examples
 
-Multiple constructors with no fields
+Enum/Sum types
 ```
-# Single line syntax
-type Bool = False | True
+# Single line
+type t Option = None | t Some
 
-# Multi line syntax
-type Bool {
-    | True
-    | False
+# Multi line
+type t Option =
+    | None
+    | t Some
+```
+
+Struct/Product types
+```
+type Vec2 t = {
+    x: t,
+    y: t
 }
+
+{x:0, y:1} Vec2 -> v
+
+v .x               # 0
+v 2 :x -> v
+v .x               # 2
 ```
 
-Multiple constructors with different numbers of fields
+Wrapper/Tuple types
 ```
-type Option o = None | Some o
-```
+type Age = (Int)
+18 Age
 
-Single constructor
+type a b Pair = (a, b)
+'a' 'b' Pair
 ```
-type Pair a b = Pair a b
-```
-
-Single record constructor
-```
-type Vec2 t = Vec2 {x: t, y: t}
-```
-
 
 ---
 
 ## Pattern matching
 
-TODO
+Matching on an enum variant will unpack its value if any
 
 ```
-2 Some
-match {
-    | None: none
-    | Some: print     # will print 2
-}
+2 Some                          # Int Option
+match
+    | None { 0 print }          # will print 0
+    | Some { print }            # will print 2
 
 ```
 

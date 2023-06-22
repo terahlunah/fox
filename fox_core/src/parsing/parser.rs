@@ -1,10 +1,8 @@
+use std::collections::HashMap;
+
+use chumsky::prelude::*;
+
 use crate::parsing::lexer::{Literal, Token};
-use chumsky::{
-    combinator::ThenIgnore,
-    prelude::*,
-    text::{digits, whitespace},
-};
-use std::{collections::HashMap, env::var};
 
 #[derive(Debug, Clone)]
 pub struct Ast {

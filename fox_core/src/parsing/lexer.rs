@@ -1,13 +1,10 @@
-use chumsky::{
-    prelude::*,
-    text::{digits, whitespace},
-};
-use eq_float::F64;
 use std::{
-    fmt,
     fmt::Display,
     hash::{Hash, Hasher},
 };
+
+use chumsky::{prelude::*, text::digits};
+use eq_float::F64;
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub enum Token {

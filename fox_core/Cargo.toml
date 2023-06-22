@@ -1,0 +1,18 @@
+[package]
+name = "fox_core"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1.0.40"
+ariadne = "0.1.5"
+chumsky = "0.8.0"
+clap = { version = "3.2.7", features = ["derive"] }
+ptree = "0.4.0"
+tap = "1.0.1"
+eq-float = "0.1.0"
+
+[dev-dependencies]
+pretty_assertions = "1.2.1"
